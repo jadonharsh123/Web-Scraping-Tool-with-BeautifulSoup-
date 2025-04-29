@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER SCRAPER v1.0</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Terminal Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #00ff00;
+            --secondary-color: #00eaff;
+            --accent-color: #ff00ea;
+            --yellow-color: #ffe600;
+            --dark-bg: #0a0a0a;
+            --terminal-bg: rgba(10, 10, 10, 0.95);
+            --text-color: #00ff00;
+            --border-color: #00ff00;
+            --glow-color: rgba(0, 255, 0, 0.7);
+            --alert-color: #ff0000;
+            --success-color: #00ff00;
+            --warning-color: #ffe600;
+            --info-color: #00eaff;
+            --panel-bg: rgba(10, 10, 10, 0.95);
+            --card-bg: linear-gradient(135deg, #0a0a0a 80%, #00eaff22 100%);
+        }
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: linear-gradient(120deg, #0a0a0a 60%, #1a1a1a 100%);
+            color: var(--text-color);
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0,0 L100,100 M100,0 L0,100" stroke="rgba(0,255,0,0.2)" stroke-width="1"/></svg>');
+            background-size: 20px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            z-index: 9999;
+            color: #fff;
+            font-size: 1.3rem;
+            font-family: 'Share Tech Mono', monospace;
+            opacity: 0.18;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px #00ff00, 0 0 40px #00eaff, 0 0 60px #ff00ea;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .navbar {
+            background: rgba(0, 0, 0, 0.92);
+            border-bottom: 2px solid var(--accent-color);
+            box-shadow: 0 0 30px var(--glow-color);
+            padding: 1rem 0;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--text-color) !important;
+            text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--accent-color);
+            letter-spacing: 2px;
+            position: relative;
+            font-size: 1.7rem;
+        }
+        
+        .navbar-brand::after {
+            content: "_";
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            padding: 24px;
+            height: calc(100vh - 80px);
+        }
+        
+        .control-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-color);
+            padding: 22px 18px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 30px var(--glow-color), 0 0 10px var(--accent-color);
+            border-radius: 18px;
+        }
+        
+        .control-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            animation: scan-border 2s linear infinite;
+        }
+        
+        @keyframes scan-border {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .option-group {
+            background: var(--card-bg);
+            border: 2px solid var(--secondary-color);
+            margin-bottom: 22px;
+            padding: 16px 12px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 18px var(--secondary-color);
+            border-radius: 12px;
+        }
+        
+        .option-group-title {
+            color: var(--accent-color);
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+            text-shadow: 0 0 8px var(--accent-color);
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            border-radius: 8px;
+        }
+        
+        .option-item:hover {
+            border-color: var(--yellow-color);
+            background: rgba(0, 255, 0, 0.13);
+            box-shadow: 0 0 12px var(--yellow-color);
+        }
+        
+        .option-label {
+            color: var(--info-color);
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--info-color);
+        }
+        
+        .option-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            margin-left: auto;
+        }
+        
+        .option-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .option-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 20px;
+            box-shadow: 0 0 8px var(--info-color);
+        }
+        
+        .option-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--info-color);
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--info-color);
+        }
+        
+        input:checked + .option-slider {
+            background-color: var(--success-color);
+        }
+        
+        input:checked + .option-slider:before {
+            transform: translateX(20px);
+            background-color: #000;
+        }
+        
+        .url-input {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid var(--accent-color);
+            color: var(--yellow-color);
+            padding: 12px;
+            width: 100%;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.15rem;
+            margin-bottom: 15px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 12px var(--accent-color);
+            border-radius: 8px;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: var(--success-color);
+            box-shadow: 0 0 18px var(--success-color);
+        }
+        
+        .execute-btn {
+            background: linear-gradient(90deg, #00ff00 0%, #00eaff 100%);
+            border: 2px solid var(--accent-color);
+            color: #000;
+            padding: 14px 25px;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 0 18px var(--accent-color);
+            border-radius: 10px;
+        }
+        
+        .execute-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 0%, rgba(255, 0, 234, 0.2) 50%, transparent 100%);
+            animation: btn-glow 2s infinite;
+        }
+        
+        @keyframes btn-glow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .execute-btn:hover {
+            background: linear-gradient(90deg, #ffe600 0%, #ff00ea 100%);
+            color: #000;
+            box-shadow: 0 0 30px var(--accent-color);
+        }
+        
+        .main-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--secondary-color);
+            padding: 24px 20px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 30px var(--secondary-color);
+            border-radius: 18px;
+        }
+        
+        .terminal-output {
+            background: var(--terminal-bg);
+            border: 2px solid var(--primary-color);
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 18px;
+            height: 300px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 18px var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+            animation: typing 0.5s steps(40, end);
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .terminal-line::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+        }
+        
+        .terminal-line.error::before {
+            color: var(--alert-color);
+        }
+        
+        .terminal-line.warning::before {
+            color: var(--warning-color);
+        }
+        
+        .terminal-line.info::before {
+            color: var(--info-color);
+        }
+        
+        .status-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--success-color);
+            box-shadow: 0 0 18px var(--success-color);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+            animation: scan-line 4s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        @keyframes scan-line {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        .result-card {
+            background: var(--card-bg);
+            border: 2px solid var(--info-color);
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 0 18px var(--info-color);
+            border-radius: 12px;
+        }
+        
+        .result-title {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px var(--accent-color);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #00ff00 0%, #00eaff 100%);
+            box-shadow: 0 0 10px var(--success-color);
+        }
+        
+        /* Background Watermark */
+        .background-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-12deg);
+            font-size: 5vw;
+            color: #ff003c;
+            opacity: 0.10;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: bold;
+            letter-spacing: 0.2em;
+            z-index: 0;
+            pointer-events: none;
+            user-select: none;
+            text-shadow: 0 0 60px #ff003c, 0 0 120px #ff003c, 0 0 240px #ff003c;
+            white-space: nowrap;
+        }
+        /* Red Alert Message */
+        .red-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,0,60,0.18);
+            border: 4px solid #ff003c;
+            border-radius: 24px;
+            padding: 38px 80px;
+            color: #ff003c;
+            font-size: 3.2rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 60px #ff003c, 0 0 120px #ff003c;
+            box-shadow: 0 0 60px #ff003c;
+            z-index: 200;
+            animation: pulse-red 0.7s infinite, shake 0.18s infinite alternate;
+            text-align: center;
+            text-transform: uppercase;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Hacking Overlay Styles (binary rain theme) */
+        .hacking-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(10,0,0,0.98);
+            z-index: 99999;
+            overflow: hidden;
+            animation: overlay-fadein 0.5s;
+        }
+        @keyframes overlay-fadein {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .hacking-header {
+            color: #ff003c;
+            font-size: 2.8rem;
+            text-align: center;
+            margin-top: 60px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 40px #ff003c, 0 0 80px #ff003c, 0 0 120px #ff003c;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: bold;
+            animation: pulse-red 0.7s infinite, shake 0.25s infinite alternate;
+            text-transform: uppercase;
+        }
+        @keyframes pulse-red {
+            0%,100% { text-shadow: 0 0 40px #ff003c, 0 0 80px #ff003c; }
+            50% { text-shadow: 0 0 80px #ff003c, 0 0 160px #ff003c; }
+        }
+        @keyframes shake {
+            0% { transform: translateX(-2px); }
+            100% { transform: translateX(2px); }
+        }
+        .hacking-progress {
+            width: 60vw;
+            margin: 40px auto 0 auto;
+            height: 22px;
+            background: #220000;
+            border-radius: 12px;
+            box-shadow: 0 0 30px #ff003c;
+            overflow: hidden;
+            border: 2px solid #ff003c;
+        }
+        .hacking-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff003c 0%, #ffe600 50%, #00ff00 100%);
+            box-shadow: 0 0 30px #ff003c;
+            border-radius: 12px;
+            transition: width 0.3s;
+        }
+        .hacking-messages {
+            margin: 40px auto 0 auto;
+            width: 60vw;
+            height: 200px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #ff003c;
+            border-radius: 12px;
+            color: #ff003c;
+            font-size: 1.25rem;
+            font-family: 'Share Tech Mono', monospace;
+            overflow-y: auto;
+            box-shadow: 0 0 30px #ff003c;
+            padding: 22px 24px;
+        }
+        .hacking-messages .msg {
+            color: #ff003c;
+            text-shadow: 0 0 10px #ff003c;
+            margin-bottom: 6px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .binary-rain {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Watermark -->
+    <div class="background-watermark">INDIAN CYBER SPACE AGENCY</div>
+    <!-- Hacker Effects -->
+    <div class="scan-line"></div>
+    <div class="status-indicator"></div>
+    <div class="watermark">INDIAN Hacking Agency BY Jadon</div>
+    <!-- Hacking Overlay -->
+    <div class="hacking-overlay" id="hackingOverlay">
+        <audio id="hackingSiren" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12c6b7b7e2.mp3"></audio>
+        <audio id="hackingSirenAlt" src="https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b273a.mp3"></audio>
+        <div class="red-alert">YOU ARE HACKED! YOUR DATA WILL BE SCRAPED!</div>
+        <canvas class="binary-rain" id="binaryRain"></canvas>
+        <div class="hacking-header">CYBER ATTACK IN PROGRESS</div>
+        <div class="hacking-progress"><div class="hacking-progress-bar" id="hackingProgressBar"></div></div>
+        <div class="hacking-messages" id="hackingMessages"></div>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-terminal me-2"></i>
+                CYBER SCRAPER v1.0
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h3 class="option-group-title">CONTROL PANEL</h3>
+            
+            <!-- URL Input -->
+            <div class="option-group">
+                <h4 class="option-group-title">TARGET URL</h4>
+                <input type="text" class="url-input" id="urlInput" placeholder="https://target.com">
+            </div>
+            
+            <!-- Scraping Options -->
+            <div class="option-group">
+                <h4 class="option-group-title">SCRAPING OPTIONS</h4>
+                
+                <div class="option-item">
+                    <i class="fas fa-file-alt me-2"></i>
+                    <span class="option-label">Text Content</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="textOption" checked>
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <i class="fas fa-image me-2"></i>
+                    <span class="option-label">Images</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="imagesOption" checked>
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <i class="fas fa-video me-2"></i>
+                    <span class="option-label">Videos</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="videosOption" checked>
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span class="option-label">Metadata</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="metadataOption" checked>
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <i class="fas fa-code me-2"></i>
+                    <span class="option-label">JavaScript</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="javascriptOption">
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Advanced Options -->
+            <div class="option-group">
+                <h4 class="option-group-title">ADVANCED OPTIONS</h4>
+                
+                <div class="option-item">
+                    <i class="fas fa-sitemap me-2"></i>
+                    <span class="option-label">Follow Links</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="followLinksOption">
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <i class="fas fa-download me-2"></i>
+                    <span class="option-label">Download Files</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="downloadFilesOption">
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <i class="fas fa-lock me-2"></i>
+                    <span class="option-label">Bypass Security</span>
+                    <label class="option-switch">
+                        <input type="checkbox" id="bypassSecurityOption">
+                        <span class="option-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Execute Button -->
+            <button class="execute-btn" id="scrapeBtn">
+                <i class="fas fa-play me-2"></i>INITIATE SCRAPING
+            </button>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Terminal Output -->
+            <div class="terminal-output" id="terminalOutput">
+                <div class="terminal-line info">[+] System initialized...</div>
+                <div class="terminal-line success">[+] Ready for scraping operation</div>
+            </div>
+            
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection" style="display: none;">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+                <p class="text-muted mb-0" id="statusText">[+] Initializing scraping sequence...</p>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <!-- Directory Structure -->
+                <div class="result-card">
+                    <h5 class="result-title">DIRECTORY STRUCTURE</h5>
+                    <div class="terminal-output" id="directoryTree">
+                        <div class="terminal-line">scraped_data/</div>
+                        <div class="terminal-line">├── images/</div>
+                        <div class="terminal-line">├── videos/</div>
+                        <div class="terminal-line">├── text/</div>
+                        <div class="terminal-line">└── metadata/</div>
+                    </div>
+                </div>
+                
+                <!-- Text Results -->
+                <div class="result-card" id="textResults">
+                    <h5 class="result-title">TEXT DATA</h5>
+                    <div id="textContent"></div>
+                </div>
+                
+                <!-- Image Results -->
+                <div class="result-card" id="imageResults">
+                    <h5 class="result-title">IMAGES</h5>
+                    <div class="row" id="imageGallery"></div>
+                </div>
+                
+                <!-- Video Results -->
+                <div class="result-card" id="videoResults">
+                    <h5 class="result-title">VIDEOS</h5>
+                    <div id="videoList"></div>
+                </div>
+                
+                <!-- Metadata Results -->
+                <div class="result-card" id="metadataResults">
+                    <h5 class="result-title">METADATA</h5>
+                    <div id="metadataContent"></div>
+                </div>
+                
+                <!-- Save Button -->
+                <button class="execute-btn" id="saveBtn">
+                    <i class="fas fa-save me-2"></i>EXPORT DATA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <!-- Custom JS -->
+    <script>
+        const socket = io();
+        let currentResults = {};
+        
+        // Initialize Socket.IO events
+        socket.on('scraping_complete', function(data) {
+            hideHackingOverlay();
+            if (data.success) {
+                updateProgress(100);
+                addTerminalLine('[+] Scraping operation completed successfully', 'success');
+                setTimeout(() => {
+                    document.getElementById('progressSection').style.display = 'none';
+                    document.getElementById('resultsSection').style.display = 'block';
+                    displayResults();
+                }, 1000);
+            } else {
+                addTerminalLine('[-] Error occurred during scraping operation', 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        });
+        
+        socket.on('progress_update', function(data) {
+            if (data.type === 'image') {
+                addTerminalLine(`[+] Downloaded ${data.count} images`, 'info');
+            } else if (data.type === 'video') {
+                addTerminalLine(`[+] Processed ${data.count} videos`, 'info');
+            }
+        });
+        
+        function addTerminalLine(text, type = 'info') {
+            const terminal = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = `terminal-line ${type}`;
+            line.textContent = text;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // Hacking Overlay Logic
+        let hackingInterval = null;
+        let hackingProgress = 0;
+        let hackingMessages = [
+            'Establishing secure connection... ',
+            'Bypassing firewall...',
+            'Injecting payload...',
+            'Extracting data packets...',
+            'Decrypting response...',
+            'Escalating privileges...',
+            'Harvesting credentials...',
+            'Uploading exfiltration script...',
+            'Collecting images...',
+            'Collecting videos...',
+            'Collecting metadata...',
+            'Finalizing data extraction...'
+        ];
+        function showHackingOverlay() {
+            document.getElementById('hackingOverlay').style.display = 'block';
+            // Play siren sound (try both, fallback if needed)
+            let sirenPlayed = false;
+            const siren = document.getElementById('hackingSiren');
+            const sirenAlt = document.getElementById('hackingSirenAlt');
+            try {
+                siren.volume = 1.0;
+                siren.currentTime = 0;
+                siren.play().then(() => { sirenPlayed = true; }).catch(() => {});
+            } catch(e) {}
+            setTimeout(() => {
+                if (!sirenPlayed) {
+                    try {
+                        sirenAlt.volume = 1.0;
+                        sirenAlt.currentTime = 0;
+                        sirenAlt.play();
+                    } catch(e) {}
+                }
+            }, 300);
+            hackingProgress = 0;
+            document.getElementById('hackingProgressBar').style.width = '0%';
+            document.getElementById('hackingMessages').innerHTML = '';
+            startBinaryRain();
+            let msgIndex = 0;
+            hackingInterval = setInterval(() => {
+                if (hackingProgress < 100) {
+                    hackingProgress += Math.floor(Math.random()*7)+3;
+                    if (hackingProgress > 100) hackingProgress = 100;
+                    document.getElementById('hackingProgressBar').style.width = hackingProgress + '%';
+                    // Add message
+                    if (msgIndex < hackingMessages.length) {
+                        let msgDiv = document.createElement('div');
+                        msgDiv.textContent = '[*] ' + hackingMessages[msgIndex++];
+                        msgDiv.className = 'msg';
+                        document.getElementById('hackingMessages').appendChild(msgDiv);
+                        document.getElementById('hackingMessages').scrollTop = document.getElementById('hackingMessages').scrollHeight;
+                    }
+                }
+            }, 1200);
+        }
+        function hideHackingOverlay() {
+            document.getElementById('hackingOverlay').style.display = 'none';
+            // Stop siren sounds
+            const siren = document.getElementById('hackingSiren');
+            const sirenAlt = document.getElementById('hackingSirenAlt');
+            siren.pause();
+            siren.currentTime = 0;
+            sirenAlt.pause();
+            sirenAlt.currentTime = 0;
+            stopBinaryRain();
+            if (hackingInterval) clearInterval(hackingInterval);
+        }
+        // Binary Rain Animation
+        let binaryRainActive = false;
+        let binaryRainCanvas, binaryRainCtx, binaryRainColumns, binaryRainDrops;
+        function startBinaryRain() {
+            binaryRainActive = true;
+            binaryRainCanvas = document.getElementById('binaryRain');
+            binaryRainCtx = binaryRainCanvas.getContext('2d');
+            binaryRainCanvas.width = window.innerWidth;
+            binaryRainCanvas.height = window.innerHeight;
+            let fontSize = 22;
+            binaryRainColumns = Math.floor(window.innerWidth / fontSize);
+            binaryRainDrops = Array(binaryRainColumns).fill(1);
+            function drawRain() {
+                if (!binaryRainActive) return;
+                binaryRainCtx.fillStyle = 'rgba(10,10,10,0.18)';
+                binaryRainCtx.fillRect(0, 0, binaryRainCanvas.width, binaryRainCanvas.height);
+                binaryRainCtx.font = fontSize + 'px monospace';
+                for (let i = 0; i < binaryRainColumns; i++) {
+                    let text = Math.random() > 0.5 ? '0' : '1';
+                    binaryRainCtx.fillStyle = '#00ff00';
+                    binaryRainCtx.fillText(text, i * fontSize, binaryRainDrops[i] * fontSize);
+                    if (binaryRainDrops[i] * fontSize > binaryRainCanvas.height && Math.random() > 0.975) {
+                        binaryRainDrops[i] = 0;
+                    }
+                    binaryRainDrops[i]++;
+                }
+                requestAnimationFrame(drawRain);
+            }
+            drawRain();
+        }
+        function stopBinaryRain() {
+            binaryRainActive = false;
+        }
+        // Scrape button click handler (override to show overlay and play sound)
+        document.getElementById('scrapeBtn').addEventListener('click', function() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                addTerminalLine('[-] Error: No target URL provided', 'error');
+                return;
+            }
+            const options = {
+                text: document.getElementById('textOption').checked,
+                images: document.getElementById('imagesOption').checked,
+                videos: document.getElementById('videosOption').checked,
+                metadata: document.getElementById('metadataOption').checked,
+                javascript: document.getElementById('javascriptOption').checked,
+                followLinks: document.getElementById('followLinksOption').checked,
+                downloadFiles: document.getElementById('downloadFilesOption').checked,
+                bypassSecurity: document.getElementById('bypassSecurityOption').checked
+            };
+            addTerminalLine(`[+] Initiating attack on target: ${url}`, 'error');
+            addTerminalLine('[+] Selected attack vectors: ' + Object.entries(options)
+                .filter(([_, value]) => value)
+                .map(([key]) => key)
+                .join(', '), 'error');
+            // Play blast sound at max volume
+            const siren = document.getElementById('hackingSiren');
+            siren.volume = 1.0;
+            siren.currentTime = 0;
+            siren.play();
+            // Show hacking overlay
+            showHackingOverlay();
+            // Show progress section
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            updateProgress(0);
+            document.getElementById('statusText').textContent = '[+] Attack in progress...';
+            // Send request to server
+            fetch('/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url, options })
+            });
+        });
+        
+        // Save button click handler
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            const saveDir = prompt('[>] Enter target directory for data export:');
+            if (!saveDir) return;
+            
+            addTerminalLine(`[+] Exporting data to: ${saveDir}`, 'info');
+            
+            fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ save_dir: saveDir })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    addTerminalLine('[+] Data export completed successfully', 'success');
+                } else {
+                    addTerminalLine('[-] Error during data export: ' + data.error, 'error');
+                }
+            });
+        });
+        
+        // Update progress bar
+        function updateProgress(percent) {
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = percent + '%';
+        }
+        
+        // Display results
+        function displayResults() {
+            // Display text content
+            if (currentResults.text) {
+                const textContent = document.getElementById('textContent');
+                textContent.innerHTML = `
+                    <div class="terminal-output">
+                        <div class="terminal-line success">[+] Title: ${currentResults.text.title}</div>
+                        <div class="terminal-line info">[+] Headings:</div>
+                        ${Object.entries(currentResults.text.headings)
+                            .map(([level, headings]) => 
+                                headings.map(h => `<div class="terminal-line">├── ${level}: ${h}</div>`).join(''))
+                            .join('')}
+                        <div class="terminal-line info">[+] Paragraphs:</div>
+                        ${currentResults.text.paragraphs.map(p => `<div class="terminal-line">├── ${p}</div>`).join('')}
+                    </div>
+                `;
+            }
+            
+            // Display images
+            if (currentResults.images) {
+                const imageGallery = document.getElementById('imageGallery');
+                imageGallery.innerHTML = currentResults.images.map(img => `
+                    <div class="col-md-3 mb-3">
+                        <div class="result-card">
+                            <img src="${img.url}" class="img-fluid" alt="Scraped image">
+                            <div class="terminal-line success">[+] ${img.filename}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Display videos
+            if (currentResults.videos) {
+                const videoList = document.getElementById('videoList');
+                videoList.innerHTML = currentResults.videos.map(video => `
+                    <div class="result-card">
+                        <div class="terminal-line success">[+] ${video.type === 'youtube' ? 'YouTube Video' : 'Video'}</div>
+                        <div class="terminal-line info">├── URL: ${video.url}</div>
+                        <button class="execute-btn download-video mt-2" 
+                                data-url="${video.url}">
+                            <i class="fas fa-download me-2"></i>DOWNLOAD
+                        </button>
+                    </div>
+                `).join('');
+                
+                // Add video download handlers
+                document.querySelectorAll('.download-video').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        addTerminalLine(`[+] Downloading video: ${url}`, 'info');
+                        
+                        fetch('/download/video', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ url })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                addTerminalLine('[+] Video download completed', 'success');
+                            } else {
+                                addTerminalLine('[-] Error downloading video: ' + data.error, 'error');
+                            }
+                        });
+                    });
+                });
+            }
+            
+            // Display metadata
+            if (currentResults.metadata) {
+                const metadataContent = document.getElementById('metadataContent');
+                metadataContent.innerHTML = `
+                    <div class="terminal-output">
+                        <div class="terminal-line success">[+] Description: ${currentResults.metadata.description}</div>
+                        <div class="terminal-line success">[+] Keywords: ${currentResults.metadata.keywords}</div>
+                        <div class="terminal-line success">[+] Author: ${currentResults.metadata.author}</div>
+                        <div class="terminal-line success">[+] Viewport: ${currentResults.metadata.viewport}</div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
